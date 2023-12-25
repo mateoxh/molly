@@ -67,6 +67,14 @@ struct gen {
 	int size;
 };
 
+struct undo {
+	int piece;
+	int index;
+	int ep;
+	int cr_from;
+	int cr_to;
+};
+
 /* gen.c */
 void genall(const struct position *, struct gen *);
 
@@ -75,8 +83,8 @@ void setup(struct position *, const char *);
 void clear(struct position *);
 
 /* make.c */
-void poscpy(struct position *, const struct position *);
-void make(struct position *, const struct move *);
+void make(struct position *, const struct move *, struct undo *);
+void unmake(struct position *, const struct move *, struct undo *);
 int legal(struct position *, const struct move *);
 int attacked(const struct position *, int, int);
 int checked(const struct position *);

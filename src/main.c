@@ -6,12 +6,8 @@
 #define PROGNAME "Molly"
 #define VERSION  "0.1"
 
-#define POSSTACKSIZ 512
-
-static struct position pstk[POSSTACKSIZ], *pos = pstk;
-
 static unsigned long
-perft(int d)
+perft(struct position *pos, int d)
 {
 	unsigned long nodes = 0;
 	struct gen gen;
@@ -31,13 +27,10 @@ perft(int d)
 			if (!legal(pos, gen.moves + i))
 				continue;
 
-			poscpy(pos + 1, pos);
-			pos++;
-
-			make(pos, gen.moves + i);
-			nodes += perft(d - 1);
-
-			pos--;
+			struct undo u;
+			make(pos, gen.moves + i, &u);
+			nodes += perft(pos, d - 1);
+			unmake(pos, gen.moves + i, &u);
 		}
 	}
 
@@ -45,7 +38,7 @@ perft(int d)
 }
 
 static void
-divide(int d)
+divide(struct position *pos, int d)
 {
 	unsigned long nodes = 0, tnodes = 0;
 	struct gen gen;
@@ -58,17 +51,14 @@ divide(int d)
 		if (!legal(pos, gen.moves + i))
 			continue;
 
-		poscpy(pos + 1, pos);
-		pos++;
-
-		make(pos, gen.moves + i);
+		struct undo u;
+		make(pos, gen.moves + i, &u);
 		mtos(gen.moves + i, buf);
 
-		nodes = perft(d - 1);
+		nodes = perft(pos, d - 1);
 		tnodes += nodes;
 		printf("%s: %ld\n", buf, nodes);
-
-		pos--;
+		unmake(pos, gen.moves + i, &u);
 	}
 
 	printf("Total Nodes: %ld\n", tnodes);
@@ -78,12 +68,10 @@ int
 main(int argc, char *argv[])
 {
 	char line[255];
-	int depth, i;
+	int depth;
+	struct position pos[1];
 
 	vector_init();
-
-	for (i = 0; i < POSSTACKSIZ; i++)
-		clear(pstk + i);
 
 	if (argc > 1) {
 		setup(pos, argv[1]);
@@ -92,7 +80,7 @@ main(int argc, char *argv[])
 			sscanf(argv[2], "%d", &depth);
 
 			if (depth > 0)
-				divide(depth);
+				divide(pos, depth);
 		}
 	} else {
 		while (fgets(line, 255, stdin)) {
@@ -100,7 +88,7 @@ main(int argc, char *argv[])
 				setup(pos, line + strlen("position fen "));
 			else if (starts_with(line, "perft")) {
 				sscanf(line + strlen("perft "), "%d", &depth);
-				printf("%ld\n", perft(depth));
+				printf("%ld\n", perft(pos, depth));
 				fflush(stdout);
 			} else if (starts_with(line, "help")) {
 				printf("%s, %s versione %s\n", AUTHOR, PROGNAME, VERSION);

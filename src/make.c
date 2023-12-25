@@ -1,32 +1,4 @@
-#include <string.h>
 #include "molly.h"
-
-void
-poscpy(struct position *dest, const struct position *src)
-{
-	memcpy(dest->board + SQ_A1, src->board + SQ_A1, 8);
-	memcpy(dest->board + SQ_A2, src->board + SQ_A2, 8);
-	memcpy(dest->board + SQ_A3, src->board + SQ_A3, 8);
-	memcpy(dest->board + SQ_A4, src->board + SQ_A4, 8);
-	memcpy(dest->board + SQ_A5, src->board + SQ_A5, 8);
-	memcpy(dest->board + SQ_A6, src->board + SQ_A6, 8);
-	memcpy(dest->board + SQ_A7, src->board + SQ_A7, 8);
-	memcpy(dest->board + SQ_A8, src->board + SQ_A8, 8);
-
-	memcpy(dest->data + SQ_A1, src->data + SQ_A1, 16);
-	memcpy(dest->data + SQ_A2, src->data + SQ_A2, 16);
-	memcpy(dest->data + SQ_A3, src->data + SQ_A3, 16);
-	memcpy(dest->data + SQ_A4, src->data + SQ_A4, 16);
-	memcpy(dest->data + SQ_A5, src->data + SQ_A5, 16);
-	memcpy(dest->data + SQ_A6, src->data + SQ_A6, 16);
-	memcpy(dest->data + SQ_A7, src->data + SQ_A7, 16);
-	memcpy(dest->data + SQ_A8, src->data + SQ_A8, 16);
-
-	memcpy(dest->data + BLACK, src->data + BLACK, 32);
-
-	dest->data[SQ_STM] = src->data[SQ_STM];
-	dest->data[SQ_EP] = src->data[SQ_EP];
-}
 
 int
 legal(struct position *pos, const struct move *mv)
@@ -138,16 +110,26 @@ movep(struct position *pos, int from, int to)
 }
 
 void
-make(struct position *pos, const struct move *mv)
+make(struct position *pos, const struct move *mv, struct undo *u)
 {
 	int stm = pos->data[SQ_STM];
 
 	assert(SQ_OK(mv->from));
 	assert(SQ_OK(mv->to));
 
-	pos->data[pos->data[mv->to]] = EMPTY;
+	/* for undo-ing */
+	u->index = pos->data[mv->to];
+	u->piece = PIECE_TYPE(pos->board[mv->to]);
+	/* done */
 
+	pos->data[pos->data[mv->to]] = EMPTY;
 	movep(pos, mv->from, mv->to);
+
+	/* for undo-ing */
+	u->ep = pos->data[SQ_EP];
+	u->cr_from = pos->data[mv->from + 8];
+	u->cr_to = pos->data[mv->to + 8];
+	/* done */
 
 	pos->data[SQ_EP] = EMPTY;
 	pos->data[mv->from + 8] = EMPTY;
@@ -158,6 +140,9 @@ make(struct position *pos, const struct move *mv)
 			pos->data[SQ_EP] = mv->to ^ 16;
 			break;
 		case MV_ENPASSANT:
+			u->index = pos->data[mv->to^16];
+			u->piece = PAWN;
+
 			pos->data[pos->data[mv->to ^ 16]] = EMPTY;
 			pos->data[mv->to ^ 16]  = EMPTY;
 			pos->board[mv->to ^ 16] = EMPTY;
@@ -177,4 +162,44 @@ make(struct position *pos, const struct move *mv)
 	}
 
 	pos->data[SQ_STM] ^= BOTH;
+}
+
+void unmake(struct position *pos, const struct move *mv, struct undo *u)
+{
+	int stm = pos->data[SQ_STM] ^= BOTH;
+
+	assert(SQ_OK(mv->from));
+	assert(SQ_OK(mv->to));
+
+	movep(pos, mv->to, mv->from);
+	/* undo-ing */
+	if (u->piece != EMPTY) {
+		int to = mv->flag == MV_ENPASSANT ? (mv->to^16) : mv->to;
+		pos->data[to] = u->index;
+		pos->data[u->index] = to;
+		pos->board[to] = u->piece + (stm ^ BOTH);
+	}
+
+	pos->data[SQ_EP] = u->ep;
+	pos->data[mv->from + 8] = u->cr_from;
+	pos->data[mv->to + 8] = u->cr_to;
+
+	switch (mv->flag) {
+		case MV_DOUBLEPUSH:
+			break;
+		case MV_ENPASSANT:
+			break;
+		case MV_PROMON:
+		case MV_PROMOB:
+		case MV_PROMOR:
+		case MV_PROMOQ:
+			pos->board[mv->from] = PAWN + stm;
+			break;
+		case MV_CASTLESH:
+			movep(pos, mv->to - 1, mv->to + 1);
+			break;
+		case MV_CASTLELO:
+			movep(pos, mv->to + 1, mv->to - 2);
+			break;
+	}
 }

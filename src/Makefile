@@ -2,7 +2,7 @@ CC= gcc
 
 SRC= $(wildcard *.c)
 
-WARN= -Wall -Wextra -pedantic -std=c99
+WARN= -Wall -Wextra -pedantic
 DEBG= -g -fno-omit-frame-pointer -fsanitize=address -O1
 OPT=  -DNDEBUG -O3 -march=native -flto
 BIN=  molly
