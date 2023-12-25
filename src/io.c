@@ -11,12 +11,12 @@ sqtos(int sq, char *buf)
 }
 
 void
-mtos(const struct move *mv, char *buf)
+mtos(int mv, char *buf)
 {
-	sqtos(mv->from, buf);
-	sqtos(mv->to, buf + 2);
+	sqtos(MV_FROM(mv), buf);
+	sqtos(MV_TO(mv), buf + 2);
 
-	switch (mv->flag) {
+	switch (MV_FLAG(mv)) {
 		case MV_PROMON:
 			buf[4] = 'n';
 			break;

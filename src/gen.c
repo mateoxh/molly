@@ -6,11 +6,7 @@ static const int jumps[] = {18, 33, 31, 14, -18, -33, -31, -14};
 static void
 mvaddf(struct gen *gen, int from, int to, int flag)
 {
-	gen->moves[gen->size].from = from;
-	gen->moves[gen->size].to   = to;
-	gen->moves[gen->size].flag = flag;
-
-	gen->size++;
+	gen->moves[gen->size++] = MV_MAKE(from, to, flag);
 }
 
 static void

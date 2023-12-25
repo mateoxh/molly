@@ -54,16 +54,21 @@ struct position {
 #define MV_CASTLESH   7
 #define MV_CASTLELO   8
 
-struct move {
-	unsigned char from;
-	unsigned char to;
-	unsigned char flag;
-};
-
 #define GENSIZ 256
 
+/* move interface
+ * 0-7: from
+ * 8-15: to
+ * 16-31: flag
+*/
+
+#define MV_MAKE(from, to, flag) ((from) | (to) << 8 | (flag) << 16)
+#define MV_FROM(move)			((move) & 0xff)
+#define MV_TO(move)				(((move) >> 8) & 0xff)
+#define MV_FLAG(move)			((move) >> 16)
+
 struct gen {
-	struct move moves[GENSIZ];
+	int moves[GENSIZ];
 	int size;
 };
 
@@ -83,14 +88,14 @@ void setup(struct position *, const char *);
 void clear(struct position *);
 
 /* make.c */
-void make(struct position *, const struct move *, struct undo *);
-void unmake(struct position *, const struct move *, struct undo *);
-int legal(struct position *, const struct move *);
+void make(struct position *, int, struct undo *);
+void unmake(struct position *, int, struct undo *);
+int legal(struct position *, int);
 int attacked(const struct position *, int, int);
 int checked(const struct position *);
 
 /* io.c */
-void mtos(const struct move *, char *);
+void mtos(int, char *);
 void sqtos(int, char *);
 int stosq(const char *);
 int starts_with(const char *s, const char *);

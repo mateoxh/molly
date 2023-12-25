@@ -19,18 +19,19 @@ perft(struct position *pos, int d)
 		return 1;
 	else if (d == 1) {
 		for (i = 0; i < gen.size; i++) {
-			if (legal(pos, gen.moves + i))
+			if (legal(pos, gen.moves[i]))
 				nodes++;
 		}
-	} else {
+	}
+	else {
 		for (i = 0; i < gen.size; i++) {
-			if (!legal(pos, gen.moves + i))
+			if (!legal(pos, gen.moves[i]))
 				continue;
 
 			struct undo u;
-			make(pos, gen.moves + i, &u);
+			make(pos, gen.moves[i], &u);
 			nodes += perft(pos, d - 1);
-			unmake(pos, gen.moves + i, &u);
+			unmake(pos, gen.moves[i], &u);
 		}
 	}
 
@@ -48,17 +49,17 @@ divide(struct position *pos, int d)
 	genall(pos, &gen);
 
 	for (i = 0; i < gen.size; i++) {
-		if (!legal(pos, gen.moves + i))
+		if (!legal(pos, gen.moves[i]))
 			continue;
 
 		struct undo u;
-		make(pos, gen.moves + i, &u);
-		mtos(gen.moves + i, buf);
+		make(pos, gen.moves[i], &u);
+		mtos(gen.moves[i], buf);
 
 		nodes = perft(pos, d - 1);
 		tnodes += nodes;
 		printf("%s: %ld\n", buf, nodes);
-		unmake(pos, gen.moves + i, &u);
+		unmake(pos, gen.moves[i], &u);
 	}
 
 	printf("Total Nodes: %ld\n", tnodes);

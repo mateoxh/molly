@@ -1,29 +1,29 @@
 #include "molly.h"
 
 int
-legal(struct position *pos, const struct move *mv)
+legal(struct position *pos, int mv)
 {
 	int stm = pos->data[SQ_STM];
 	int kng = pos->data[stm];
-	int dir = direction(kng, mv->from);
+	int dir = direction(kng, MV_FROM(mv));
 	int to, atk;
 
-	if (mv->from == kng) {
+	if (MV_FROM(mv) == kng) {
 		pos->board[kng] = EMPTY;
-		atk = attacked(pos, mv->to, stm ^ BOTH);
+		atk = attacked(pos, MV_TO(mv), stm ^ BOTH);
 		pos->board[kng] = KING + stm;
 
 		return !atk;
-	} else if (mv->flag == MV_ENPASSANT) {
+	} else if (MV_FLAG(mv) == MV_ENPASSANT) {
 		if (dir == 1 || dir == -1) {
 			for (to = kng + dir; pos->board[to] == EMPTY; to += dir)
 				;
 
-			if (to != mv->from && to != (mv->to ^ 16))
+			if (to != MV_FROM(mv) && to != (MV_TO(mv) ^ 16))
 				return 1;
 
-			to = mv->from + dir;
-			if (to == (mv->to ^ 16))
+			to = MV_FROM(mv) + dir;
+			if (to == (MV_TO(mv) ^ 16))
 				to += dir;
 
 			for (; pos->board[to] == EMPTY; to += dir)
@@ -36,13 +36,13 @@ legal(struct position *pos, const struct move *mv)
 		}
 	}
 
-	if (dir == 0 || dir == direction(kng, mv->to))
+	if (dir == 0 || dir == direction(kng, MV_TO(mv)))
 		return 1;
 
 	for (to = kng + dir; pos->board[to] == EMPTY; to += dir)
 		;
 
-	if (to != mv->from)
+	if (to != MV_FROM(mv))
 		return 1;
 
 	for (to += dir; pos->board[to] == EMPTY; to += dir)
@@ -110,81 +110,81 @@ movep(struct position *pos, int from, int to)
 }
 
 void
-make(struct position *pos, const struct move *mv, struct undo *u)
+make(struct position *pos, int mv, struct undo *u)
 {
 	int stm = pos->data[SQ_STM];
 
-	assert(SQ_OK(mv->from));
-	assert(SQ_OK(mv->to));
+	assert(SQ_OK(MV_FROM(mv)));
+	assert(SQ_OK(MV_TO(mv)));
 
 	/* for undo-ing */
-	u->index = pos->data[mv->to];
-	u->piece = PIECE_TYPE(pos->board[mv->to]);
+	u->index = pos->data[MV_TO(mv)];
+	u->piece = PIECE_TYPE(pos->board[MV_TO(mv)]);
 	/* done */
 
-	pos->data[pos->data[mv->to]] = EMPTY;
-	movep(pos, mv->from, mv->to);
+	pos->data[pos->data[MV_TO(mv)]] = EMPTY;
+	movep(pos, MV_FROM(mv), MV_TO(mv));
 
 	/* for undo-ing */
 	u->ep = pos->data[SQ_EP];
-	u->cr_from = pos->data[mv->from + 8];
-	u->cr_to = pos->data[mv->to + 8];
+	u->cr_from = pos->data[MV_FROM(mv) + 8];
+	u->cr_to = pos->data[MV_TO(mv) + 8];
 	/* done */
 
 	pos->data[SQ_EP] = EMPTY;
-	pos->data[mv->from + 8] = EMPTY;
-	pos->data[mv->to + 8] = EMPTY;
+	pos->data[MV_FROM(mv) + 8] = EMPTY;
+	pos->data[MV_TO(mv) + 8] = EMPTY;
 
-	switch (mv->flag) {
+	switch (MV_FLAG(mv)) {
 		case MV_DOUBLEPUSH:
-			pos->data[SQ_EP] = mv->to ^ 16;
+			pos->data[SQ_EP] = MV_TO(mv) ^ 16;
 			break;
 		case MV_ENPASSANT:
-			u->index = pos->data[mv->to^16];
+			u->index = pos->data[MV_TO(mv)^16];
 			u->piece = PAWN;
 
-			pos->data[pos->data[mv->to ^ 16]] = EMPTY;
-			pos->data[mv->to ^ 16]  = EMPTY;
-			pos->board[mv->to ^ 16] = EMPTY;
+			pos->data[pos->data[MV_TO(mv) ^ 16]] = EMPTY;
+			pos->data[MV_TO(mv) ^ 16]  = EMPTY;
+			pos->board[MV_TO(mv) ^ 16] = EMPTY;
 			break;
 		case MV_PROMON:
 		case MV_PROMOB:
 		case MV_PROMOR:
 		case MV_PROMOQ:
-			pos->board[mv->to] = mv->flag + stm;
+			pos->board[MV_TO(mv)] = MV_FLAG(mv) + stm;
 			break;
 		case MV_CASTLESH:
-			movep(pos, mv->to + 1, mv->to - 1);
+			movep(pos, MV_TO(mv) + 1, MV_TO(mv) - 1);
 			break;
 		case MV_CASTLELO:
-			movep(pos, mv->to - 2, mv->to + 1);
+			movep(pos, MV_TO(mv) - 2, MV_TO(mv) + 1);
 			break;
 	}
 
 	pos->data[SQ_STM] ^= BOTH;
 }
 
-void unmake(struct position *pos, const struct move *mv, struct undo *u)
+void unmake(struct position *pos, int mv, struct undo *u)
 {
 	int stm = pos->data[SQ_STM] ^= BOTH;
 
-	assert(SQ_OK(mv->from));
-	assert(SQ_OK(mv->to));
+	assert(SQ_OK(MV_FROM(mv)));
+	assert(SQ_OK(MV_TO(mv)));
 
-	movep(pos, mv->to, mv->from);
+	movep(pos, MV_TO(mv), MV_FROM(mv));
 	/* undo-ing */
 	if (u->piece != EMPTY) {
-		int to = mv->flag == MV_ENPASSANT ? (mv->to^16) : mv->to;
+		int to = MV_FLAG(mv) == MV_ENPASSANT ? (MV_TO(mv)^16) : MV_TO(mv);
 		pos->data[to] = u->index;
 		pos->data[u->index] = to;
 		pos->board[to] = u->piece + (stm ^ BOTH);
 	}
 
 	pos->data[SQ_EP] = u->ep;
-	pos->data[mv->from + 8] = u->cr_from;
-	pos->data[mv->to + 8] = u->cr_to;
+	pos->data[MV_FROM(mv) + 8] = u->cr_from;
+	pos->data[MV_TO(mv) + 8] = u->cr_to;
 
-	switch (mv->flag) {
+	switch (MV_FLAG(mv)) {
 		case MV_DOUBLEPUSH:
 			break;
 		case MV_ENPASSANT:
@@ -193,13 +193,13 @@ void unmake(struct position *pos, const struct move *mv, struct undo *u)
 		case MV_PROMOB:
 		case MV_PROMOR:
 		case MV_PROMOQ:
-			pos->board[mv->from] = PAWN + stm;
+			pos->board[MV_FROM(mv)] = PAWN + stm;
 			break;
 		case MV_CASTLESH:
-			movep(pos, mv->to - 1, mv->to + 1);
+			movep(pos, MV_TO(mv) - 1, MV_TO(mv) + 1);
 			break;
 		case MV_CASTLELO:
-			movep(pos, mv->to + 1, mv->to - 2);
+			movep(pos, MV_TO(mv) + 1, MV_TO(mv) - 2);
 			break;
 	}
 }
