@@ -6,31 +6,40 @@
 #define PROGNAME "Molly"
 #define VERSION  "0.1"
 
-static unsigned long
+static long
 perft(struct position *pos, int d)
 {
-	unsigned long nodes = 0;
+	long nodes = 0;
 	struct gen gen;
 	int i;
 
-	genall(pos, &gen);
-
 	if (d < 1)
 		return 1;
-	else if (d == 1) {
-		for (i = 0; i < gen.size; i++) {
-			if (legal(pos, gen.moves[i]))
-				nodes++;
-		}
-	}
-	else {
-		for (i = 0; i < gen.size; i++) {
-			if (!legal(pos, gen.moves[i]))
-				continue;
 
+	genall(pos, &gen);
+	for (i = 0; i < gen.size; i++) {
+		if (!legal(pos, gen.moves[i]))
+			continue;
+
+		if (d == 1) {
+			nodes++;
+		} else {
 			struct undo u;
+			long result;
+
 			make(pos, gen.moves[i], &u);
-			nodes += perft(pos, d - 1);
+
+			Hash h = hash(pos);
+			struct ttentry *e = get(h);
+
+			if (e->key == h && e->depth == d - 1) {
+				result = e->nodes;
+			} else {
+				result = perft(pos, d - 1);
+				put(h, result, d - 1);
+			}
+
+			nodes += result;
 			unmake(pos, gen.moves[i], &u);
 		}
 	}
@@ -73,6 +82,8 @@ main(int argc, char *argv[])
 	struct position pos[1];
 
 	vector_init();
+	hash_init();
+	tt_init();
 
 	if (argc > 1) {
 		setup(pos, argv[1]);

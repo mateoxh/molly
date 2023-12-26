@@ -240,7 +240,7 @@ genall(const struct position *pos, struct gen *gen)
 			mvadd(gen, kng, to);
 	}
 
-	if (__builtin_expect(chk == 0, 1))
+	if (chk == 0)
 		gnormal(pos, gen, stm);
 	else if (chk > 0) gevasions(pos, gen, kng, chk, stm);
 }

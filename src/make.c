@@ -185,10 +185,6 @@ void unmake(struct position *pos, int mv, struct undo *u)
 	pos->data[MV_TO(mv) + 8] = u->cr_to;
 
 	switch (MV_FLAG(mv)) {
-		case MV_DOUBLEPUSH:
-			break;
-		case MV_ENPASSANT:
-			break;
 		case MV_PROMON:
 		case MV_PROMOB:
 		case MV_PROMOR:

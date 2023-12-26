@@ -61,7 +61,6 @@ struct position {
  * 8-15: to
  * 16-31: flag
 */
-
 #define MV_MAKE(from, to, flag) ((from) | (to) << 8 | (flag) << 16)
 #define MV_FROM(move)			((move) & 0xff)
 #define MV_TO(move)				(((move) >> 8) & 0xff)
@@ -104,3 +103,20 @@ int starts_with(const char *s, const char *);
 void vector_init(void);
 int direction(int, int);
 int pseudo_attack(int, int, int);
+
+/* hash.c */
+typedef unsigned long long Hash;
+
+void hash_init();
+Hash hash(struct position *);
+
+/* tt.c */
+struct ttentry {
+	Hash key;
+	long nodes;
+	int depth;
+};
+
+void tt_init();
+void put(Hash, long, int);
+struct ttentry *get(Hash);
