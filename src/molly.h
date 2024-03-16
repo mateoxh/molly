@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <stddef.h>
 
 #define SQ_A1  68
 #define SQ_A2  84
@@ -117,6 +118,6 @@ struct ttentry {
 	int depth;
 };
 
-void tt_init();
+void tt_init(size_t);
 void put(Hash, long, int);
 struct ttentry *get(Hash);

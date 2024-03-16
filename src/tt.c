@@ -1,18 +1,14 @@
 #include <stdlib.h>
-#include <string.h>
 #include "molly.h"
 
-/* 8 MB */
-#define MEMORY (8 * 1024 * 1024)
-
 static struct ttentry *tt;
-static size_t N = MEMORY / sizeof(struct ttentry);
+static size_t len;
 
 void
-tt_init()
+tt_init(size_t mb)
 {
-	tt = (struct ttentry *)malloc(MEMORY);
-	memset(tt, 0, MEMORY);
+	len = (mb * 1024 * 1024) / sizeof(struct ttentry);
+	tt = calloc(len, sizeof(struct ttentry));
 }
 
 void
@@ -27,5 +23,5 @@ put(Hash key, long nodes, int depth)
 
 struct ttentry *get(Hash h)
 {
-	return &tt[h % N];
+	return &tt[h % len];
 }
