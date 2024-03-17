@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 #include "molly.h"
 
 #define AUTHOR   "Mateo Gjika"
 #define PROGNAME "Molly"
 #define VERSION  "0.2"
 
+#define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
 #define DEFAULT_TT_SIZE 16
 
 static long
@@ -83,13 +85,16 @@ main(int argc, char *argv[])
 {
 	char line[255];
 	struct position pos[1];
-	int depth, tt_size = DEFAULT_TT_SIZE;
+	int depth, verbose = 0, tt_size = DEFAULT_TT_SIZE;
 	int opt;
 
-	while ((opt = getopt(argc, argv, "h:")) != -1) {
+	while ((opt = getopt(argc, argv, "vh:")) != -1) {
 		switch (opt) {
 			case 'h':
 				tt_size = atoi(optarg);
+				break;
+			case 'v':
+				verbose = 1;
 				break;
 		}
 	}
@@ -98,18 +103,44 @@ main(int argc, char *argv[])
 	hash_init();
 	tt_init(tt_size);
 
+	if (verbose)
+		printf("Hash Table initialized to %d MB\n", tt_size);
+
 	while (fgets(line, sizeof(line), stdin)) {
 		if (starts_with(line, "position")) {
-			setup(pos, line + strlen("position fen"));
+			const char *p = strchr(line, ' ');
+			if (p != NULL && starts_with(p + 1, "fen"))
+				setup(pos, line + strlen("position fen"));
+			else
+				setup(pos, DEFAULT_FEN);
 		} else if (starts_with(line, "perft")) {
 			sscanf(line + strlen("perft"), "%d", &depth);
-			printf("%ld\n", perft(pos, depth));
+			if (verbose)
+				for (int d = 1; d <= depth; d++) {
+					clock_t start = clock();
+					long nodes = perft(pos, d);
+					double sec = (double)(clock() - start) / CLOCKS_PER_SEC;
+					printf("perft %d (%ld) in %.2f s\n", d, nodes, sec);
+				}
+			else
+				printf("%ld\n", perft(pos, depth));
 			fflush(stdout);
 		} else if (starts_with(line, "divide")) {
 			sscanf(line + strlen("divide"), "%d", &depth);
 			divide(pos, depth);
-		} else if (starts_with(line, "info")) {
-			printf("%s, %s versione %s\n", AUTHOR, PROGNAME, VERSION);
+		} else if (starts_with(line, "help")) {
+			printf("%s, %s version %s\n", AUTHOR, PROGNAME, VERSION);
+			printf("commands available:\n");
+			printf("  position [startpos|fen <FEN>] - set up the position described in FEN on the internal\n");
+			printf("                                  board for the standard start position startpos can be passed\n");
+			printf("  perft <DEPTH>                 - start calculating Perft on the current position up to DEPTH\n");
+			printf("  divide <DEPTH>                - run Perft for each one of the moves in the current position\n");
+			printf("  quit                          - quit the program\n");
+			printf("  help                          - print this message\n");
+		} else if (starts_with(line, "quit")) {
+			exit(0);
+		} else {
+			printf("command not recognized\n");
 		}
 	}
 }
