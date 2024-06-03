@@ -1,4 +1,5 @@
 #include <string.h>
+
 #include "molly.h"
 
 static int
@@ -44,8 +45,8 @@ placep(struct position *pos, char c, int sq)
 		}
 	}
 
-	pos->board[sq]   = piece;
-	pos->data[sq]    = index;
+	pos->board[sq] = piece;
+	pos->data[sq] = index;
 	pos->data[index] = sq;
 }
 
@@ -79,33 +80,33 @@ setup(struct position *pos, const char *fen)
 	fen = skipws(fen);
 	for (; (c = *fen) && c != ' '; fen++) {
 		switch (c) {
-			case '/':
-				sq -= 24;
-				break;
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-				sq += c - '0';
-				break;
-			case 'k':
-			case 'p':
-			case 'n':
-			case 'b':
-			case 'r':
-			case 'q':
-			case 'K':
-			case 'P':
-			case 'N':
-			case 'B':
-			case 'R':
-			case 'Q':
-				placep(pos, c, sq++);
-				break;
+		case '/':
+			sq -= 24;
+			break;
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+			sq += c - '0';
+			break;
+		case 'k':
+		case 'p':
+		case 'n':
+		case 'b':
+		case 'r':
+		case 'q':
+		case 'K':
+		case 'P':
+		case 'N':
+		case 'B':
+		case 'R':
+		case 'Q':
+			placep(pos, c, sq++);
+			break;
 		}
 	}
 
@@ -114,28 +115,28 @@ setup(struct position *pos, const char *fen)
 		fen++;
 
 		switch (c) {
-			case 'w':
-			case 'b':
-				setstm(pos, c);
-				break;
+		case 'w':
+		case 'b':
+			setstm(pos, c);
+			break;
 		}
 	}
 
 	fen = skipws(fen);
 	for (; (c = *fen) && c != ' '; fen++) {
 		switch (c) {
-			case 'K':
-				setcr(pos, SQ_A1 + 'e' - 'a', SQ_A1 + 'h' - 'a');
-				break;
-			case 'Q':
-				setcr(pos, SQ_A1 + 'e' - 'a', SQ_A1);
-				break;
-			case 'k':
-				setcr(pos, SQ_A8 + 'e' - 'a', SQ_A8 + 'h' - 'a');
-				break;
-			case 'q':
-				setcr(pos, SQ_A8 + 'e' - 'a', SQ_A8);
-				break;
+		case 'K':
+			setcr(pos, SQ_A1 + 'e' - 'a', SQ_A1 + 'h' - 'a');
+			break;
+		case 'Q':
+			setcr(pos, SQ_A1 + 'e' - 'a', SQ_A1);
+			break;
+		case 'k':
+			setcr(pos, SQ_A8 + 'e' - 'a', SQ_A8 + 'h' - 'a');
+			break;
+		case 'q':
+			setcr(pos, SQ_A8 + 'e' - 'a', SQ_A8);
+			break;
 		}
 	}
 

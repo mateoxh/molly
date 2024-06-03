@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+
 #include "molly.h"
 
 void
@@ -17,21 +18,21 @@ mtos(int mv, char *buf)
 	sqtos(MV_TO(mv), buf + 2);
 
 	switch (MV_FLAG(mv)) {
-		case MV_PROMON:
-			buf[4] = 'n';
-			break;
-		case MV_PROMOB:
-			buf[4] = 'b';
-			break;
-		case MV_PROMOR:
-			buf[4] = 'r';
-			break;
-		case MV_PROMOQ:
-			buf[4] = 'q';
-			break;
-		default:
-			buf[4] = '\0';
-			break;
+	case MV_PROMON:
+		buf[4] = 'n';
+		break;
+	case MV_PROMOB:
+		buf[4] = 'b';
+		break;
+	case MV_PROMOR:
+		buf[4] = 'r';
+		break;
+	case MV_PROMOQ:
+		buf[4] = 'q';
+		break;
+	default:
+		buf[4] = '\0';
+		break;
 	}
 
 	buf[5] = '\0';

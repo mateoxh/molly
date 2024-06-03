@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
+
 #include "molly.h"
 
 static Hash zkeys[2][6][128];
@@ -29,12 +30,16 @@ hash(struct position *pos)
 	}
 
 	from = pos->data[WHITE];
-	if (pos->data[from + 8] & pos->data[from + 3 + 8]) h ^= zkeys_castle[0];
-	if (pos->data[from + 8] & pos->data[from - 4 + 8]) h ^= zkeys_castle[1];
+	if (pos->data[from + 8] & pos->data[from + 3 + 8])
+		h ^= zkeys_castle[0];
+	if (pos->data[from + 8] & pos->data[from - 4 + 8])
+		h ^= zkeys_castle[1];
 
 	from = pos->data[BLACK];
-	if (pos->data[from + 8] & pos->data[from + 3 + 8]) h ^= zkeys_castle[2];
-	if (pos->data[from + 8] & pos->data[from - 4 + 8]) h ^= zkeys_castle[3];
+	if (pos->data[from + 8] & pos->data[from + 3 + 8])
+		h ^= zkeys_castle[2];
+	if (pos->data[from + 8] & pos->data[from - 4 + 8])
+		h ^= zkeys_castle[3];
 
 	h ^= zkeys_stm[stm == WHITE];
 

@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
+
 #include "molly.h"
 
-#define AUTHOR   "Mateo Gjika"
-#define PROGNAME "Molly"
-#define VERSION  "0.2"
+#define AUTHOR		"Mateo Gjika"
+#define PROGNAME	"Molly"
+#define VERSION		"0.2"
 
-#define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
+#define DEFAULT_FEN	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
 #define DEFAULT_TT_SIZE 16
 
 static long
@@ -90,12 +91,12 @@ main(int argc, char *argv[])
 
 	while ((opt = getopt(argc, argv, "vh:")) != -1) {
 		switch (opt) {
-			case 'h':
-				tt_size = atoi(optarg);
-				break;
-			case 'v':
-				verbose = 1;
-				break;
+		case 'h':
+			tt_size = atoi(optarg);
+			break;
+		case 'v':
+			verbose = 1;
+			break;
 		}
 	}
 
@@ -119,8 +120,10 @@ main(int argc, char *argv[])
 				for (int d = 1; d <= depth; d++) {
 					clock_t start = clock();
 					long nodes = perft(pos, d);
-					double sec = (double)(clock() - start) / CLOCKS_PER_SEC;
-					printf("perft %d (%ld) in %.2f s\n", d, nodes, sec);
+					double sec = (double)(clock() - start) /
+					    CLOCKS_PER_SEC;
+					printf("perft %d (%ld) in %.2f s\n", d,
+					    nodes, sec);
 				}
 			else
 				printf("%ld\n", perft(pos, depth));
@@ -129,14 +132,21 @@ main(int argc, char *argv[])
 			sscanf(line + strlen("divide"), "%d", &depth);
 			divide(pos, depth);
 		} else if (starts_with(line, "help")) {
-			printf("%s, %s version %s\n", AUTHOR, PROGNAME, VERSION);
+			printf("%s, %s version %s\n", AUTHOR, PROGNAME,
+			    VERSION);
 			printf("commands available:\n");
-			printf("  position [startpos|fen <FEN>] - set up the position described in FEN on the internal\n");
-			printf("                                  board for the standard start position startpos can be passed\n");
-			printf("  perft <DEPTH>                 - start calculating Perft on the current position up to DEPTH\n");
-			printf("  divide <DEPTH>                - run Perft for each one of the moves in the current position\n");
-			printf("  quit                          - quit the program\n");
-			printf("  help                          - print this message\n");
+			printf(
+			    "  position [startpos|fen <FEN>] - set up the position described in FEN on the internal\n");
+			printf(
+			    "                                  board for the standard start position startpos can be passed\n");
+			printf(
+			    "  perft <DEPTH>                 - start calculating Perft on the current position up to DEPTH\n");
+			printf(
+			    "  divide <DEPTH>                - run Perft for each one of the moves in the current position\n");
+			printf(
+			    "  quit                          - quit the program\n");
+			printf(
+			    "  help                          - print this message\n");
 		} else if (starts_with(line, "quit")) {
 			exit(0);
 		} else {

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+
 #include "molly.h"
 
 static struct ttentry *tt;
@@ -21,7 +22,8 @@ put(Hash key, long nodes, int depth)
 	e->depth = depth;
 }
 
-struct ttentry *get(Hash h)
+struct ttentry *
+get(Hash h)
 {
 	return &tt[h % len];
 }

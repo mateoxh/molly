@@ -2,16 +2,19 @@ CC= gcc
 
 SRC= $(wildcard *.c)
 
-WARN= -Wall -Wextra -pedantic
-DEBG= -g -fno-omit-frame-pointer -fsanitize=address -O1
-OPT=  -DNDEBUG -O3 -march=native -flto
-BIN=  molly
+WARN= -Wall -Wextra
+DEBG= -g -fsanitize=address
+OPT= -DNDEBUG -O3 -march=native -flto
+BIN= molly
 
-all:
-	$(CC) $(WARN) $(DEBG) $(SRC) -o $(BIN)
+$(BIN): $(SRC)
+	$(CC) $(WARN) $(DEBG) $(SRC) -o $@
 
-build:
+build: $(SRC)
 	$(CC) $(WARN) $(OPT) $(SRC) -o $(BIN)
+
+format:
+	clang-format -i $(SRC)
 
 clean:
 	@rm -f $(BIN)

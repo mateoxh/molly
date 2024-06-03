@@ -1,7 +1,7 @@
 #include "molly.h"
 
-#define VECDELTA	119
-#define VECSIZ		(VECDELTA * 2 + 1)
+#define VECDELTA 119
+#define VECSIZ	 (VECDELTA * 2 + 1)
 
 static int dirvec[VECSIZ];
 static long psattvec[VECSIZ];
@@ -21,8 +21,8 @@ wbmap(int piece)
 void
 vector_init(void)
 {
-	static const int steps[] = {1, 16, -16, -1, 17, 15, -17, -15};
-	static const int jumps[] = {18, 33, 31, 14, -18, -33, -31, -14};
+	static const int steps[] = { 1, 16, -16, -1, 17, 15, -17, -15 };
+	static const int jumps[] = { 18, 33, 31, 14, -18, -33, -31, -14 };
 
 	int i, j;
 
@@ -30,8 +30,10 @@ vector_init(void)
 		for (j = 1; j < 8; j++)
 			dirvec[VECDELTA + steps[i] * j] = steps[i];
 
-	psattvec[VECDELTA + 15] = psattvec[VECDELTA + 17] = bitmap(PAWN + WHITE);
-	psattvec[VECDELTA - 15] = psattvec[VECDELTA - 17] = bitmap(PAWN + BLACK);
+	psattvec[VECDELTA + 15] = psattvec[VECDELTA + 17] = bitmap(
+	    PAWN + WHITE);
+	psattvec[VECDELTA - 15] = psattvec[VECDELTA - 17] = bitmap(
+	    PAWN + BLACK);
 
 	for (i = 0; i < 8; i++) {
 		psattvec[VECDELTA + steps[i]] |= wbmap(KING);
@@ -39,7 +41,9 @@ vector_init(void)
 
 		for (j = 1; j < 8; j++) {
 			psattvec[VECDELTA + steps[i] * j] |= wbmap(QUEEN);
-			psattvec[VECDELTA + steps[i] * j] |= i < 4 ? wbmap(ROOK) : wbmap(BISHOP);
+			psattvec[VECDELTA + steps[i] * j] |= i < 4 ?
+			    wbmap(ROOK) :
+			    wbmap(BISHOP);
 		}
 	}
 }
